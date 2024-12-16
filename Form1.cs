@@ -1,109 +1,142 @@
-﻿using Microsoft.EntityFrameworkCore; // Импортируем пространство имен для работы с Entity Framework Core.
-using System; // Импортируем пространство имен для базовых типов данных.
-using System.Collections.Generic; // Импортируем пространство имен для работы с коллекциями.
-using System.ComponentModel; // Импортируем пространство имен для работы с компонентами и их свойствами.
-using System.Data; // Импортируем пространство имен для работы с данными.
-using System.Drawing; // Импортируем пространство имен для работы с графикой.
-using System.Linq; // Импортируем пространство имен для работы с LINQ.
-using System.Text; // Импортируем пространство имен для работы с текстом.
-using System.Threading.Tasks; // Импортируем пространство имен для работы с асинхронным программированием.
-using System.Windows.Forms; // Импортируем пространство имен для работы с Windows Forms.
+﻿using Microsoft.EntityFrameworkCore; 
+using System; 
+using System.Collections.Generic; 
+using System.ComponentModel; 
+using System.Data; 
+using System.Drawing;
+using System.Linq; 
+using System.Text; 
+using System.Threading.Tasks; 
+using System.Windows.Forms; 
 
 
-namespace Remont // Определяем пространство имен для нашего приложения.
+namespace Remont 
 {
-    public partial class Form1 : Form // Определяем класс Form1, который наследуется от класса Form.
+    /// <summary>
+    /// Основная форма приложения для управления заявками на ремонт оборудования.
+    /// </summary>
+    public partial class Form1 : Form 
     {
-        private RemontDBContext _context; // Создаем переменную для контекста базы данных.
-        private Request _selectedRequest; // Создаем переменную для хранения выбранной заявки.
+        private RemontDBContext _context; 
+        private Request _selectedRequest;
 
-        public Form1() // Конструктор класса Form1.
+        /// <summary>
+        /// Инициализирует новый экземпляр <see cref="Form1"/> и загружает данные.
+        /// </summary>
+        public Form1()
         {
-            InitializeComponent(); // Инициализируем компоненты формы.
-            _context = new RemontDBContext(); // Создаем новый экземпляр контекста базы данных.
-            LoadRequests(); // Загружаем заявки из базы данных при инициализации формы.
+            InitializeComponent();
+            _context = new RemontDBContext();
+            LoadRequests(); 
         }
 
-        private void Form1_Load(object sender, EventArgs e) // Обработчик события загрузки формы.
+
+        /// <summary>
+        /// Обработчик события загрузки формы.
+        /// </summary>
+        private void Form1_Load(object sender, EventArgs e) 
         {
            
         }
 
-        private void buttonAddRequest_Click(object sender, EventArgs e) // Обработчик нажатия кнопки добавления заявки.
+        /// <summary>
+        /// Обработчик нажатия кнопки для добавления или обновления заявки.
+        /// </summary>
+        /// <param name="sender">Объект, вызвавший событие.</param>
+        /// <param name="e">Аргументы события.</param>
+        private void buttonAddRequest_Click(object sender, EventArgs e) 
         {
-            var equipmentName = textBoxEquipmentName.Text; // Получаем название оборудования из текстового поля.
-            var equipment = _context.Equipments // Ищем оборудование в базе данных.
-                .AsEnumerable()  // Преобразуем результат в перечисляемую коллекцию.
-                .FirstOrDefault(eq => eq.EquipmentName.Equals(equipmentName, StringComparison.OrdinalIgnoreCase)); // Находим первое оборудование с совпадающим именем.
+            var equipmentName = textBoxEquipmentName.Text; 
+            var equipment = _context.Equipments 
+                .AsEnumerable()  
+                .FirstOrDefault(eq => eq.EquipmentName.Equals(equipmentName, StringComparison.OrdinalIgnoreCase)); 
 
-            if (equipment == null) // Проверяем, найдено ли оборудование.
+            if (equipment == null) 
             {
-                MessageBox.Show("Оборудование не найдено. Пожалуйста, проверьте название."); // Выводим сообщение об ошибке, если оборудование не найдено.
-                return; // Завершаем выполнение метода.
+                MessageBox.Show("Оборудование не найдено. Пожалуйста, проверьте название."); 
+                return; 
             }
 
-            if (_selectedRequest == null)  // Проверяем, была ли выбрана существующая заявка.
+            if (_selectedRequest == null)  
             {
-                var newRequest = new Request // Создаем новую заявку.
+                var newRequest = new Request 
                 {
-                    EquipmentID = equipment.EquipmentID, // Устанавливаем ID оборудования.
-                    RequestDate = DateTime.Now, // Устанавливаем дату заявки на текущее время.
-                    Status = "Создана", // Устанавливаем статус заявки.
-                    Description = textBoxDescription.Text // Устанавливаем описание заявки из текстового поля.
+                    EquipmentID = equipment.EquipmentID, 
+                    RequestDate = DateTime.Now, 
+                    Status = "Создана", 
+                    Description = textBoxDescription.Text 
                 };
 
-                _context.Requests.Add(newRequest); // Добавляем новую заявку в контекст базы данных.
+                _context.Requests.Add(newRequest); 
             }
-            else // Если заявка уже была выбрана для редактирования.
+            else 
             {
-                _selectedRequest.EquipmentID = equipment.EquipmentID; // Обновляем ID оборудования в выбранной заявке.
-                _selectedRequest.Description = textBoxDescription.Text; // Обновляем описание заявки.
-                _selectedRequest.Status = "Обновлена";  // Обновляем статус заявки.
+                _selectedRequest.EquipmentID = equipment.EquipmentID;
+                _selectedRequest.Description = textBoxDescription.Text; 
+                _selectedRequest.Status = "Обновлена"; 
             }
 
-            _context.SaveChanges();  // Сохраняем изменения в базе данных.
-            LoadRequests(); // Загружаем обновленный список заявок.
-            ClearForm(); // Очищаем форму для ввода новой заявки.
+            _context.SaveChanges();  
+            LoadRequests(); 
+            ClearForm(); 
         }
 
-        private void buttonDeleteRequest_Click(object sender, EventArgs e) // Обработчик нажатия кнопки удаления заявки.
+        /// <summary>
+        /// Обработчик нажатия кнопки для удаления выбранной заявки.
+        /// </summary>
+        /// <param name="sender">Объект, вызвавший событие.</param>
+        /// <param name="e">Аргументы события.</param>
+        private void buttonDeleteRequest_Click(object sender, EventArgs e) 
         {
-            if (_selectedRequest != null) // Проверяем, была ли выбрана заявка для удаления.
+            if (_selectedRequest != null)  
             {
-                _context.Requests.Remove(_selectedRequest); // Удаляем выбранную заявку из контекста базы данных.
-                _context.SaveChanges(); // Сохраняем изменения в базе данных.
-                LoadRequests(); // Загружаем обновленный список заявок.
-                ClearForm(); // Очищаем форму.
+                _context.Requests.Remove(_selectedRequest);     
+                _context.SaveChanges();     
+                LoadRequests(); 
+                ClearForm(); 
             }
             else
             {
-                MessageBox.Show("Выберите заявку для удаления."); // Если заявка не была выбрана.
+                MessageBox.Show("Выберите заявку для удаления."); 
             }
         }
 
-        private void dataGridViewRequests_CellContentClick(object sender, DataGridViewCellEventArgs e) // Обработчик события клика по ячейке в таблице заявок.
+        /// <summary>
+        /// Обработчик события клика по ячейке в таблице заявок.
+        /// </summary>
+        /// <param name="sender">Объект, вызвавший событие.</param>
+        /// <param name="e">Аргументы события.</param>
+        private void dataGridViewRequests_CellContentClick(object sender, DataGridViewCellEventArgs e) 
         {
-            if (e.RowIndex >= 0) // Проверяем, что клик был по действительной строке.
+            if (e.RowIndex >= 0) 
             {
-                _selectedRequest = (Request)dataGridViewRequests.Rows[e.RowIndex].DataBoundItem; // Получаем выбранную заявку из таблицы.
-                var equipment = _context.Equipments.FirstOrDefault(eq => eq.EquipmentID == _selectedRequest.EquipmentID); // Находим оборудование по ID в выбранной заявке.
+                _selectedRequest = (Request)dataGridViewRequests.Rows[e.RowIndex].DataBoundItem;
+                var equipment = _context.Equipments.FirstOrDefault(eq => eq.EquipmentID == _selectedRequest.EquipmentID); 
 
-                // Заполняем текстовые поля данными выбранной заявки.
-                textBoxEquipmentName.Text = equipment?.EquipmentName; // Устанавливаем название оборудования в текстовое поле.
-                textBoxDescription.Text = _selectedRequest.Description; // Устанавливаем описание заявки в текстовое поле.
+                
+                textBoxEquipmentName.Text = equipment?.EquipmentName; 
+                textBoxDescription.Text = _selectedRequest.Description; 
             }
         }
-        private void ClearForm() // Метод для очистки формы.
+
+        /// <summary>
+        /// Очищает форму для ввода новой заявки.
+        /// </summary>
+        private void ClearForm() 
         {
-            _selectedRequest = null; // Сбрасываем выбранную заявку.
-            textBoxEquipmentName.Clear(); // Очищаем текстовое поле с названием оборудования.
-            textBoxDescription.Clear(); // Очищаем текстовое поле с описанием заявки.
+            _selectedRequest = null; 
+            textBoxEquipmentName.Clear(); 
+            textBoxDescription.Clear(); 
         }
 
-        private void LoadRequests() // Метод для загрузки заявок из базы данных.
+
+        /// <summary>
+        /// Загружает список заявок из базы данных и отображает их в таблице.
+        /// </summary>
+        private void LoadRequests() 
         {
-            var requests = _context.Requests.Include(r => r.Equipment).ToList(); // Загружаем заявки с включением связанных данных об оборудовании.
-            dataGridViewRequests.DataSource = requests; // Устанавливаем источник данных для таблицы заявок.
+            var requests = _context.Requests.Include(r => r.Equipment).ToList(); 
+            dataGridViewRequests.DataSource = requests; 
         }
     }
 
